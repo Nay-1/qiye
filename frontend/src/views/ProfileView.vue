@@ -94,18 +94,55 @@ function nextTickRenderRadar() {
   setTimeout(() => {
     if (!radarRef.value || !profile.value?.skills.length) return
     const chart = echarts.init(radarRef.value)
-    const names = profile.value.skills.map(s => s.skillName)
+    const sk = profile.value.skills
+    const names = sk.map(s => s.skillName)
+    const targetLine = { '初级': 60, '中级': 60, '高级': 80 }
     chart.setOption({
       tooltip: {},
+      legend: {
+        bottom: 0,
+        left: 'center',
+        itemWidth: 14,
+        itemHeight: 8,
+        textStyle: { color: '#6B7B72', fontSize: 12 },
+        data: ['当前得分', '达标线']
+      },
       radar: {
         indicator: names.map(n => ({ name: n, max: 100 })),
-        radius: '68%',
-        splitArea: { areaStyle: { color: ['#f8fafc', '#eef2ff'] } }
+        radius: '64%',
+        center: ['50%', '48%'],
+        splitNumber: 5,
+        axisName: { color: '#33423A', fontSize: 12 },
+        splitArea: { areaStyle: { color: ['#FBFDFC', '#EFF6F1'] } },
+        splitLine: { lineStyle: { color: '#DCE7E0' } },
+        axisLine: { lineStyle: { color: '#DCE7E0' } }
       },
-      series: [{
-        type: 'radar',
-        data: [{ value: profile.value.skills.map(s => s.score ?? 0), name: '技能得分', areaStyle: { opacity: .25 }, itemStyle: { color: '#3b82f6' } }]
-      }]
+      series: [
+        {
+          type: 'radar',
+          name: '当前得分',
+          symbolSize: 4,
+          data: [{
+            value: sk.map(s => s.score ?? 0),
+            name: '当前得分',
+            areaStyle: { color: 'rgba(28,107,79,.22)' },
+            lineStyle: { color: '#1C6B4F', width: 2 },
+            itemStyle: { color: '#1C6B4F' }
+          }]
+        },
+        {
+          type: 'radar',
+          name: '达标线',
+          symbol: 'none',
+          data: [{
+            value: sk.map(s => targetLine[s.targetLevel] ?? null),
+            name: '达标线',
+            areaStyle: { show: false },
+            lineStyle: { color: '#E5A13C', width: 2, type: 'dashed' },
+            itemStyle: { color: '#E5A13C' }
+          }]
+        }
+      ]
     })
   }, 50)
 }

@@ -138,16 +138,22 @@ onMounted(() => { if (store.canManage) skillList().then(d => skills.value = d) }
 .msg { display: flex; margin-bottom: 12px; }
 .msg.user { justify-content: flex-end; }
 .msg.assistant { justify-content: flex-start; }
-.bubble { max-width: 80%; padding: 10px 14px; border-radius: 10px; }
-.msg.user .bubble { background: #3b82f6; color: #fff; }
-.msg.assistant .bubble { background: #f1f5f9; }
-.msg-role { font-size: 12px; opacity: .7; margin-bottom: 4px; }
+.bubble { max-width: 80%; padding: 11px 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(14,36,28,.06); }
+.msg.user .bubble { background: var(--pine); color: #fff; border-bottom-right-radius: 4px; }
+.msg.assistant .bubble {
+  background: #F0F5F1;
+  color: var(--ink-text);
+  border: 1px solid var(--hairline);
+  border-bottom-left-radius: 4px;
+  border-left: 3px solid var(--amber);
+}
+.msg-role { font-family: var(--serif); font-size: 12px; font-weight: 600; opacity: .75; margin-bottom: 5px; }
 .msg-src { margin-top: 8px; }
 .chat-input { display: flex; gap: 10px; margin-top: 12px; }
 .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
-.gen-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.gen-item { border: 1px solid var(--hairline); border-radius: 12px; padding: 14px; margin-bottom: 12px; background: #fff; }
 .gen-head { display: flex; gap: 8px; align-items: center; }
-.gen-opts { padding-left: 20px; margin-top: 8px; color: #374151; }
-.gen-answer { margin-top: 8px; color: #059669; }
+.gen-opts { padding-left: 20px; margin-top: 8px; color: var(--ink-text); }
+.gen-answer { margin-top: 8px; color: var(--pine); }
 .gen-actions { margin-top: 10px; display: flex; gap: 10px; align-items: center; }
 </style>

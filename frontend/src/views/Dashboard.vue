@@ -1,9 +1,9 @@
 <template>
   <div>
     <el-row :gutter="16" class="cards">
-      <el-col v-for="c in cards" :key="c.label" :span="6">
-        <el-card shadow="never">
-          <div class="card-num">{{ c.value }}</div>
+      <el-col v-for="c in cards" :key="c.label" :xs="12" :md="6">
+        <el-card shadow="never" class="stat-card">
+          <div class="card-num serif-num" :class="c.tone">{{ c.value }}</div>
           <div class="card-label">{{ c.label }}</div>
         </el-card>
       </el-col>
@@ -41,7 +41,7 @@ function renderTrend(data) {
     grid: { left: 40, right: 20, top: 30, bottom: 30 },
     xAxis: { type: 'category', data: data.trend.map(t => t.label), axisLabel: { fontSize: 10 } },
     yAxis: { type: 'value', min: 0, max: 100 },
-    series: [{ type: 'line', smooth: true, data: data.trend.map(t => t.score), areaStyle: { opacity: .15 }, itemStyle: { color: '#3b82f6' } }]
+    series: [{ type: 'line', smooth: true, data: data.trend.map(t => t.score), areaStyle: { color: 'rgba(28,107,79,.15)' }, lineStyle: { color: '#1C6B4F', width: 2.5 }, itemStyle: { color: '#1C6B4F' }, symbolSize: 6 }]
   })
 }
 
@@ -52,7 +52,7 @@ function renderCourse(data) {
     grid: { left: 60, right: 20, top: 30, bottom: 50 },
     xAxis: { type: 'category', data: data.courses.map(c => c.courseName), axisLabel: { fontSize: 10, interval: 0, rotate: 25 } },
     yAxis: { type: 'value', max: 100 },
-    series: [{ type: 'bar', data: data.courses.map(c => c.completeRate), itemStyle: { color: '#10b981', borderRadius: [4,4,0,0] }, barWidth: 20 }]
+    series: [{ type: 'bar', data: data.courses.map(c => c.completeRate), itemStyle: { color: '#2A7F8A', borderRadius: [4,4,0,0] }, barWidth: 20 }]
   })
 }
 
@@ -63,19 +63,21 @@ function renderWeak(data) {
     grid: { left: 60, right: 20, top: 10, bottom: 20 },
     xAxis: { type: 'value' },
     yAxis: { type: 'category', data: data.weakTop.map(w => w.skillName).reverse() },
-    series: [{ type: 'bar', data: data.weakTop.map(w => w.count).reverse(), itemStyle: { color: '#ef4444', borderRadius: [0,4,4,0] }, barWidth: 16 }]
+    series: [{ type: 'bar', data: data.weakTop.map(w => w.count).reverse(), itemStyle: { color: '#C2563B', borderRadius: [0,4,4,0] }, barWidth: 16 }]
   })
 }
 
 function renderDept(data) {
   const chart = initChart(deptRef.value)
   chart.setOption({
+    color: ['#1C6B4F', '#E5A13C', '#2A7F8A', '#6B7B72', '#C2563B', '#8EB5A7'],
     tooltip: { trigger: 'item' },
     legend: { bottom: 0, textStyle: { fontSize: 11 } },
     series: [{
       type: 'pie', radius: ['40%', '65%'], center: ['50%', '42%'],
       data: data.map(d => ({ name: d.deptName, value: d.studyRate })),
-      label: { formatter: '{b}\n{c}%', fontSize: 11 }
+      label: { formatter: '{b}\n{c}%', fontSize: 11, color: '#33423A' },
+      itemStyle: { borderRadius: 4 }
     }]
   })
 }
@@ -87,7 +89,7 @@ function renderRank(data) {
     grid: { left: 60, right: 20, top: 10, bottom: 20 },
     xAxis: { type: 'value', max: 100 },
     yAxis: { type: 'category', data: data.map(r => r.userName).reverse() },
-    series: [{ type: 'bar', data: data.map(r => r.avgScore).reverse(), itemStyle: { color: '#8b5cf6', borderRadius: [0,4,4,0] }, barWidth: 16, label: { show: true, position: 'right' } }]
+    series: [{ type: 'bar', data: data.map(r => r.avgScore).reverse(), itemStyle: { color: '#E5A13C', borderRadius: [0,4,4,0] }, barWidth: 16, label: { show: true, position: 'right', color: '#33423A' } }]
   })
 }
 
@@ -95,6 +97,7 @@ onMounted(async () => {
   const [ov, ex, st, sk, dp, rk] = await Promise.all([
     statsOverview(), statsExam(), statsStudy(), statsSkill(), statsDept(), statsRanking()
   ])
+  const tones = ['pine', 'amber', 'teal', 'clay']
   cards.value = [
     { label: '企业员工', value: ov.userCount },
     { label: '培训课程', value: ov.courseCount },
@@ -104,7 +107,7 @@ onMounted(async () => {
     { label: '考试平均分', value: ov.avgScore },
     { label: '考试通过率', value: ov.passRate + '%' },
     { label: '薄弱技能项', value: ov.weakSkillCount }
-  ]
+  ].map((c, i) => ({ ...c, tone: tones[i % tones.length] }))
   renderTrend(ex)
   renderCourse(st)
   renderWeak(sk)
@@ -119,8 +122,22 @@ onMounted(async () => {
 <style scoped>
 .cards { margin-bottom: 16px; }
 .cards .el-col { margin-bottom: 16px; }
-.card-num { font-size: 24px; font-weight: 700; color: #1e3a8a; }
-.card-label { color: #6b7280; font-size: 13px; margin-top: 4px; }
+.stat-card { position: relative; overflow: hidden; }
+.stat-card::after {
+  content: '';
+  position: absolute; right: -34px; top: -38px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 1px solid #DCE7E0;
+  box-shadow: 0 0 0 14px rgba(220,231,224,.35), 0 0 0 30px rgba(220,231,224,.22), 0 0 0 48px rgba(220,231,224,.12);
+  pointer-events: none;
+}
+.card-num { font-size: 28px; color: var(--ink-text); position: relative; }
+.card-num.pine { color: var(--pine); }
+.card-num.amber { color: var(--amber-deep); }
+.card-num.teal { color: var(--teal); }
+.card-num.clay { color: var(--clay); }
+.card-label { color: var(--muted); font-size: 13px; margin-top: 4px; position: relative; }
 .el-row + .el-row { margin-top: 16px; }
 .chart { height: 300px; }
 </style>

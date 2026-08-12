@@ -1,0 +1,210 @@
+/* ============================================================
+   「练兵 · 等高线」设计系统
+   技能达标如登山：墨绿 / 松绿 / 纸白 / 达标琥珀 / 薄弱赤
+   ============================================================ */
+
+:root {
+  /* —— 主题色（命名色） —— */
+  --ink: #0E241C;          /* 墨绿：侧栏、最深 */
+  --forest: #13382B;       /* 深林：菜单激活底 */
+  --pine: #1C6B4F;         /* 松绿：主色 / 动作 */
+  --pine-deep: #15523C;    /* 松绿按下 / hover */
+  --paper: #F4F7F5;        /* 纸白：应用底 */
+  --sage: #E8F0EB;         /* 淡苔：表头 / 浅底 */
+  --hairline: #DEE8E1;     /* 发丝线 */
+  --amber: #E5A13C;        /* 达标琥珀：达标线 / 高亮 */
+  --amber-deep: #C9892B;
+  --clay: #C2563B;         /* 薄弱赤 */
+  --teal: #2A7F8A;         /* 数据辅助青 */
+  --ink-text: #1F2A25;     /* 正文墨 */
+  --muted: #6B7B72;        /* 次级文字 */
+
+  /* —— 字体 —— */
+  --serif: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
+  --sans: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Helvetica Neue', Arial, sans-serif;
+
+  /* —— Element Plus 主色（松绿） —— */
+  --el-color-primary: #1C6B4F;
+  --el-color-primary-light-3: #609784;
+  --el-color-primary-light-5: #8EB5A7;
+  --el-color-primary-light-7: #BBD3CA;
+  --el-color-primary-light-8: #D2E1DC;
+  --el-color-primary-light-9: #E8F0ED;
+  --el-color-primary-dark-2: #15523C;
+
+  --el-color-success: #2F8F6B;
+  --el-color-success-light-3: #6DB197;
+  --el-color-success-light-5: #97C7B5;
+  --el-color-success-light-7: #C1DDD3;
+  --el-color-success-light-8: #D5E9E1;
+  --el-color-success-light-9: #EAF4F0;
+  --el-color-success-dark-2: #23715A;
+
+  --el-color-warning: #E5A13C;
+  --el-color-warning-light-3: #EDBD77;
+  --el-color-warning-light-5: #F2D09E;
+  --el-color-warning-light-7: #F7E3C5;
+  --el-color-warning-light-8: #FAECD8;
+  --el-color-warning-light-9: #FCF6EC;
+  --el-color-warning-dark-2: #C9892B;
+
+  --el-color-danger: #C2563B;
+  --el-color-danger-light-3: #D48976;
+  --el-color-danger-light-5: #E1AB9D;
+  --el-color-danger-light-7: #EDCCC4;
+  --el-color-danger-light-8: #F3DDD8;
+  --el-color-danger-light-9: #F9EEEB;
+  --el-color-danger-dark-2: #A44730;
+  --el-color-error: #C2563B;
+  --el-color-error-light-3: #D48976;
+  --el-color-error-light-5: #E1AB9D;
+  --el-color-error-light-7: #EDCCC4;
+  --el-color-error-light-8: #F3DDD8;
+  --el-color-error-light-9: #F9EEEB;
+  --el-color-error-dark-2: #A44730;
+
+  --el-color-info: #6B7B72;
+  --el-color-info-light-3: #93A098;
+  --el-color-info-light-5: #B0BAB4;
+  --el-color-info-light-7: #CED5D0;
+  --el-color-info-light-8: #DDE2DE;
+  --el-color-info-light-9: #EFF2F0;
+  --el-color-info-dark-2: #55635B;
+
+  /* —— 边框 / 圆角 —— */
+  --el-border-color: #DEE8E1;
+  --el-border-color-light: #E4ECE7;
+  --el-border-color-lighter: #EBF1ED;
+  --el-border-color-extra-light: #F0F4F1;
+  --el-border-radius-base: 10px;
+  --el-border-radius-small: 8px;
+  --el-border-radius-round: 20px;
+
+  /* —— 文本 —— */
+  --el-text-color-primary: #1F2A25;
+  --el-text-color-regular: #33423A;
+  --el-text-color-secondary: #6B7B72;
+  --el-text-color-placeholder: #93A098;
+
+  /* —— 填充 —— */
+  --el-bg-color: #FFFFFF;
+  --el-bg-color-page: #F4F7F5;
+  --el-fill-color: #EDF2EF;
+  --el-fill-color-light: #F2F6F3;
+  --el-fill-color-lighter: #F7FAF8;
+  --el-fill-color-blank: #FFFFFF;
+
+  --el-font-family: var(--sans);
+  --el-font-size-base: 14px;
+}
+
+/* ============================================================
+   全局基底
+   ============================================================ */
+html, body, #app { height: 100%; margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink-text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+* { box-sizing: border-box; }
+
+/* 等高线纹理（可复用的背景元素，低饱和，不喧宾） */
+.contour-bg {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='700' viewBox='0 0 700 700'><g fill='none' stroke='%23DCE7E0' stroke-width='1' opacity='0.7'><ellipse cx='560' cy='140' rx='420' ry='260'/><ellipse cx='560' cy='140' rx='330' ry='198'/><ellipse cx='560' cy='140' rx='245' ry='142'/><ellipse cx='560' cy='140' rx='168' ry='95'/><ellipse cx='560' cy='140' rx='102' ry='55'/><ellipse cx='560' cy='140' rx='48' ry='25'/><ellipse cx='560' cy='140' rx='16' ry='8'/></g></svg>");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* serif 数字（大数值 / 标题用） */
+.serif-num {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   Element Plus 全局润色
+   ============================================================ */
+
+/* 卡片：纸白、发丝线、圆角、轻阴影；标题宋体 + 达标琥珀刻痕 */
+.el-card {
+  --el-card-border-color: var(--hairline);
+  --el-card-border-radius: 12px;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(14, 36, 28, 0.04), 0 4px 14px rgba(14, 36, 28, 0.05) !important;
+}
+.el-card.is-hover-shadow:hover { box-shadow: 0 6px 24px rgba(14, 36, 28, 0.10) !important; }
+.el-card__header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--serif);
+  font-weight: 600;
+  color: var(--ink-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.el-card__header::before {
+  content: '';
+  width: 3px;
+  height: 15px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--amber) 0%, var(--amber) 55%, rgba(229,161,60,.15) 100%);
+  flex: none;
+}
+.el-card__body { padding: 16px 18px; }
+
+/* 表格：苔色表头 + 墨色字 */
+.el-table {
+  --el-table-header-bg-color: #EEF3EF;
+  --el-table-header-text-color: #244136;
+  --el-table-text-color: #33423A;
+  --el-table-border-color: #E4ECE7;
+  --el-table-row-hover-bg-color: #F3F8F5;
+  --el-table-tr-bg-color: #FFFFFF;
+}
+.el-table th.el-table__cell {
+  font-weight: 600;
+  font-size: 13px;
+}
+.el-table th.el-table__cell .cell { letter-spacing: 0.02em; }
+.el-table__body tr { transition: background-color .15s; }
+
+/* 进度条：达标琥珀 */
+.el-progress-bar__outer { background: var(--sage); }
+
+/* 标签 */
+.el-tag { font-weight: 500; border-radius: 6px; }
+
+/* 弹窗 / 消息统一圆角 */
+.el-message-box, .el-dialog { border-radius: 14px; }
+.el-dialog__title { font-family: var(--serif); font-weight: 600; }
+
+/* 空状态 / 表单提示文字色 */
+.el-empty__description p { color: var(--muted); }
+
+/* 滚动条：细、苔色 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C7D6CC; border-radius: 6px; border: 2px solid var(--paper); }
+::-webkit-scrollbar-thumb:hover { background: #A9BEB0; }
+
+/* 键盘焦点可见 */
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* 减少动态偏好：关闭动画 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
