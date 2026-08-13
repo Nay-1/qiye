@@ -12,8 +12,8 @@
 | 后端 | Spring Boot 3.5 + MyBatis-Plus + Spring Security + JWT |
 | 前端 | Vue 3 + Vite + Element Plus + ECharts + Pinia |
 | 数据库 | PostgreSQL 16 + pgvector（单库：业务表 + 知识库向量） |
-| 文档解析 | Apache PDFBox / POI |
-| AI | OpenCode Go（对话/出题）+ 通义 Qwen text-embedding-v3（向量化），OpenAI 兼容协议，可切换可降级 |
+| 文档解析 | Apache PDFBox / POI（PDF / Word / Excel） |
+| AI | OpenCode Go（对话/出题/建议）+ 通义 Qwen text-embedding-v3（向量化），OpenAI 兼容协议，可切换可降级 |
 
 > **实现说明**：AI 层用 Spring Boot 内置 RestClient 手写 OpenAI 兼容调用（`com.qiye.ai` 包），
 > 未引入 Spring AI 框架——避免其与 Spring Boot 的版本强绑定及国产模型的兼容坑，同时可完全控制降级逻辑。
@@ -43,9 +43,10 @@
 │   └── data.sql            # 演示数据（角色/部门/用户/岗位/技能/课程/题目/画像）
 ├── backend/                # Spring Boot 后端（端口 8080，context-path /api）
 │   └── src/main/java/com/qiye/
-│       ├── controller/     # REST 接口
-│       ├── service/        # 业务逻辑（任务生成/评分/画像聚合/统计/AI）
+│       ├── controller/     # REST 接口（含 /question/import 批量导入）
+│       ├── service/        # 业务逻辑（任务生成/评分/画像聚合/统计/AI/批量导入）
 │       ├── ai/             # LlmClient / EmbeddingClient（OpenAI 兼容）
+│       ├── config/         # 安全配置 / jsonb 类型处理器（PgJsonbTypeHandler）
 │       ├── security/       # JWT + RBAC
 │       └── common/         # 统一响应 / 异常处理
 └── frontend/               # Vue3 前端（端口 5173，/api 代理到 8080）
@@ -59,8 +60,11 @@ docker compose up -d
 
 # 2. 启动后端
 cd backend
-./start-backend.sh        # 已注入 JVM 代理（OpenCode Go 在海外，需代理访问）
-# 或手动：mvn spring-boot:run（需自行设置 JAVA_TOOL_OPTIONS 代理）
+# AI API Key 放在 backend/.env（本地密钥文件，已被 .gitignore 排除，不随代码上传）：
+#   OPENCODE_API_KEY=xxx      # 对话 / 出题 / 建议
+#   DASHSCOPE_API_KEY=xxx     # 知识库向量化（不填时检索自动降级为关键词匹配）
+# 不配置 Key 时 AI 自动降级为 mock，业务不受影响。
+./start-backend.sh         # 直连外部 AI 服务，不注入本地代理
 
 # 3. 启动前端
 cd frontend
@@ -79,9 +83,10 @@ npm run dev
 
 ## 五、AI 配置（已接入真实模型，默认 mock 降级）
 
-> 本机已配置好两个 Key，`ai.provider=opencode`（对话/出题/建议走 OpenCode Go，向量化走通义 Qwen）。
-> **关键点：OpenCode Go 服务器在海外，后端启动时必须注入 JVM 代理**（见 `backend/start-backend.sh`），
-> 否则调用会超时。若本机代理端口不是 7890，修改脚本即可。
+> 两个 Key 放在 `backend/.env`（本地密钥文件，已 gitignore，不随代码上传）：
+> `OPENCODE_API_KEY`（对话/出题/建议）+ `DASHSCOPE_API_KEY`（知识库向量化）。
+> **后端直连外部 AI 服务**（`start-backend.sh` 已清除代理环境变量、不注入 JVM 代理），
+> 无需本地代理；如需走本地代理（如 FlClash:7890），取消脚本中注释行即可。
 
 AI 配置位于 `backend/src/main/resources/application.yml`：
 
@@ -105,11 +110,11 @@ ai:
 
 1. **用户权限**：部门/用户/角色管理，JWT + RBAC（管理员/培训负责人/员工三角色）
 2. **岗位技能体系**：岗位、技能、岗位技能配置（目标等级+权重）、员工岗位分配、培训任务自动生成
-3. **课程学习**：课程/章节/技能关联、章节级学习进度、学完联动任务完成
-4. **在线考试**：题库（单选/多选/判断 + 题目-技能绑定）、组卷、在线答题、自动评分
+3. **课程学习**：学习通式阅读体验——章节目录树、自动计时涨进度、上一节/下一节连续学习；员工「我的课程」列表，学完联动任务完成
+4. **在线考试**：题库（单选/多选/判断 + 题目-技能绑定）、**批量导入（Excel/Word/PDF/MD/TXT，约定格式解析 + AI 识别，错误行跳过）**、组卷、在线答题、自动评分
 5. **技能画像**：题目-技能得分聚合、达成率、薄弱技能识别、雷达图
-6. **知识库 RAG**：PDF/Word/TXT 上传 → 解析 → 切片 → 向量化(pgvector) → 部门隔离检索
-7. **AI 助手**：RAG 问答（可溯源）、AI 生成试题（人工审核 + 强制绑定 question_skill）、AI 学习建议（规则判定 + LLM 文案）
+6. **知识库 RAG**：PDF/Word/TXT/Markdown 上传 → 解析 → 切片 → 向量化(pgvector) → 部门隔离检索
+7. **AI 助手**：RAG 问答（可溯源）、AI 生成试题（人工审核 + 强制绑定 question_skill）、AI 识别批量导入、AI 学习建议（规则判定 + LLM 文案）
 8. **数据统计**：学习/考试/技能达成/部门完成率/员工排名（ECharts 看板）
 
 ## 七、答辩亮点
@@ -119,3 +124,4 @@ ai:
 3. **基于知识库的 RAG 智能问答**：回答可溯源、按部门隔离、无结果时明确告知而非硬编（边界规则）。
 4. **业务规则 + LLM 协作**：能力判定交给规则引擎（不直接让大模型判分），LLM 只生成自然语言建议，稳定可靠。
 5. **AI 调用多 Provider 可切换 + 全链路降级**：无 API Key 也能完整演示，符合生产降级规范。
+6. **多格式批量导入**：题库支持 Excel/Word/PDF/MD/TXT 一键导入，约定格式解析 + AI 识别双通道，逐行校验跳过错误行——真实工作场景可直接把既有文档导入系统。
