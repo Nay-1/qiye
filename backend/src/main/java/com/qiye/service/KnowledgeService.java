@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class KnowledgeService {
 
-    private static final Set<String> ALLOWED = Set.of("pdf", "docx", "txt");
+    private static final Set<String> ALLOWED = Set.of("pdf", "docx", "txt", "md");
     private static final int CHUNK_SIZE = 500;
 
     private final KnowledgeFileMapper fileMapper;
@@ -210,7 +210,7 @@ public class KnowledgeService {
             return switch (ext) {
                 case "pdf" -> parsePdf(in);
                 case "docx" -> parseDocx(in);
-                case "txt" -> new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                case "txt", "md" -> new String(in.readAllBytes(), StandardCharsets.UTF_8);
                 default -> "";
             };
         }

@@ -15,13 +15,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/dept")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class DeptController {
 
     private final DeptMapper deptMapper;
     private final SysUserMapper sysUserMapper;
 
+    /** 部门列表：管理员 / 培训负责人（知识库可见部门范围等） */
     @GetMapping("/list")
+    @PreAuthorize("hasAnyRole('ADMIN','TRAINER')")
     public Result<List<Dept>> list() {
         List<Dept> depts = deptMapper.selectList(
                 new LambdaQueryWrapper<Dept>().orderByAsc(Dept::getId));
@@ -34,6 +35,7 @@ public class DeptController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<Void> create(@RequestBody Dept dept) {
         checkUniqueName(dept.getName(), null);
         dept.setId(null);
@@ -42,6 +44,7 @@ public class DeptController {
     }
 
     @PutMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<Void> update(@RequestBody Dept dept) {
         if (dept.getId() == null) {
             throw new BizException("部门ID不能为空");
@@ -52,6 +55,7 @@ public class DeptController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<Void> delete(@PathVariable Long id) {
         Long count = sysUserMapper.selectCount(
                 new LambdaQueryWrapper<com.qiye.entity.SysUser>().eq(com.qiye.entity.SysUser::getDeptId, id));

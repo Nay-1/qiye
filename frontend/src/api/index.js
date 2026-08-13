@@ -66,6 +66,9 @@ export const questionDetail = id => request.get(`/question/${id}`)
 export const questionCreate = data => request.post('/question', data)
 export const questionUpdate = data => request.put('/question', data)
 export const questionDelete = id => request.delete(`/question/${id}`)
+export const questionImport = (formData) => request.post('/question/import', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+})
 
 // 考试
 export const examPage = params => request.get('/exam/page', { params })

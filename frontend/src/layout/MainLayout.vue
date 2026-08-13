@@ -135,6 +135,7 @@ const employeeGroups = [
   {
     label: '我的成长',
     items: [
+      { path: '/my-courses', icon: 'Reading', label: '我的课程' },
       { path: '/profile', icon: 'User', label: '我的技能画像' },
       { path: '/ai', icon: 'MagicStick', label: 'AI 智能助手' }
     ]
@@ -147,7 +148,11 @@ const groups = computed(() => store.canManage ? manageGroups : employeeGroups)
 function isActive(path) {
   const p = route.path
   if (p === path) return true
-  if (p.startsWith('/learn/') && path === '/courses') return true
+  if (p.startsWith('/learn/')) {
+    // 员工高亮回「我的课程」，管理员/培训负责人高亮回「课程管理」
+    if (!store.canManage && path === '/my-courses') return true
+    if (store.canManage && path === '/courses') return true
+  }
   if ((p.startsWith('/exam-take/') || p.startsWith('/exam-result/')) && path === '/exams') return true
   if (p.startsWith('/profile/') && path === '/profile') return true
   return false

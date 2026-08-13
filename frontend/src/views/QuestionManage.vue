@@ -10,6 +10,7 @@
       </el-select>
       <el-button type="primary" @click="load">查询</el-button>
       <el-button type="success" @click="openCreate">新增题目</el-button>
+      <el-button type="success" plain @click="openImport">批量导入</el-button>
       <el-button type="warning" @click="$router.push('/ai')">AI 生成试题</el-button>
     </div>
 
@@ -96,13 +97,62 @@
         <el-button type="primary" @click="save">保存</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="importDialog" title="批量导入试题" width="640px" top="6vh">
+      <el-upload drag :auto-upload="false" :limit="1" accept=".xlsx,.docx,.pdf,.md,.txt"
+                 :on-change="onImportFile" :on-remove="() => importFile = null" style="margin-bottom:14px">
+        <el-icon :size="40" color="#909399"><UploadFilled /></el-icon>
+        <div>拖拽或点击上传题目文件（Excel / Word / PDF / Markdown / TXT，≤5MB）</div>
+      </el-upload>
+
+      <el-form label-width="90px">
+        <el-form-item label="考核技能" required>
+          <el-select v-model="importSkillId" placeholder="选择导入题目统一绑定的技能" style="width:100%">
+            <el-option v-for="s in skills" :key="s.id" :label="s.name" :value="s.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="识别方式">
+          <el-radio-group v-model="importMode">
+            <el-radio value="AUTO">智能自动</el-radio>
+            <el-radio value="CONVENTION">约定格式</el-radio>
+            <el-radio value="AI">AI 识别</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+
+      <el-collapse style="margin-bottom:14px">
+        <el-collapse-item title="Excel 模板与文本约定格式说明" name="fmt">
+          <div style="line-height:1.9;color:#555">
+            <b>Excel</b>：首行表头「题型 / 题干 / 选项A / 选项B / 选项C / 选项D / 答案 / 解析」，其余每行一题；
+            题型填 单选/多选/判断；判断题选项留空、答案填 对/错。<br />
+            <b>Word / PDF / Markdown / TXT</b>（每题之间空一行）：<br />
+            &nbsp;1. 题干（单选）<br />
+            &nbsp;A. 选项一&nbsp;&nbsp;B. 选项二&nbsp;&nbsp;C. 选项三&nbsp;&nbsp;D. 选项四<br />
+            &nbsp;答案：B<br />
+            &nbsp;解析：……<br />
+            「智能自动」先按约定格式解析，识别不出时自动交给 AI；「AI 识别」需配置大模型 API Key。
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+
+      <el-alert v-if="importResult" type="success" :title="`导入完成：成功 ${importResult.success} 题，跳过 ${importResult.errors.length} 题`"
+                :closable="false" style="margin-bottom:10px" />
+      <div v-if="importResult?.errors?.length" class="import-errors">
+        <div v-for="(e, i) in importResult.errors" :key="i" class="import-err">· {{ e }}</div>
+      </div>
+
+      <template #footer>
+        <el-button @click="importDialog = false">关闭</el-button>
+        <el-button type="primary" :loading="importing" :disabled="!importFile || !importSkillId" @click="doImport">开始导入</el-button>
+      </template>
+    </el-dialog>
   </el-card>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { questionPage, questionCreate, questionUpdate, questionDelete, skillList } from '@/api'
+import { questionPage, questionCreate, questionUpdate, questionDelete, questionImport, skillList } from '@/api'
 
 const questions = ref([]), skills = ref([])
 const loading = ref(false), page = ref(1), size = ref(10), total = ref(0)
@@ -121,7 +171,7 @@ function onTypeChange() {
 
 async function load() {
   loading.value = true
-  const d = await questionPage({ page: page.value, size: size.value, keyword: keyword.value, type: type.value || undefined, skillId: skillFilter || undefined })
+  const d = await questionPage({ page: page.value, size: size.value, keyword: keyword.value, type: type.value || undefined, skillId: skillFilter.value || undefined })
   questions.value = d.records; total.value = d.total; loading.value = false
 }
 function openCreate() {
@@ -150,6 +200,34 @@ async function remove(row) {
   await questionDelete(row.id); ElMessage.success('已删除'); load()
 }
 
+// ===== 批量导入 =====
+const importDialog = ref(false), importFile = ref(null), importSkillId = ref(null)
+const importMode = ref('AUTO'), importing = ref(false), importResult = ref(null)
+
+function openImport() {
+  importDialog.value = true; importFile.value = null; importResult.value = null
+}
+function onImportFile(uploadFile) { importFile.value = uploadFile.raw }
+async function doImport() {
+  if (!importFile.value) return ElMessage.warning('请选择文件')
+  if (!importSkillId.value) return ElMessage.warning('请选择导入题目统一绑定的考核技能')
+  importing.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', importFile.value)
+    fd.append('skillId', importSkillId.value)
+    fd.append('mode', importMode.value)
+    const res = await questionImport(fd)
+    importResult.value = res
+    if (res.success) {
+      ElMessage.success(`成功导入 ${res.success} 题${res.errors.length ? `，跳过 ${res.errors.length} 题` : ''}`)
+      load()
+    } else {
+      ElMessage.warning('导入失败：未成功导入任何题目')
+    }
+  } finally { importing.value = false }
+}
+
 onMounted(() => { load(); skillList().then(d => skills.value = d) })
 </script>
 
@@ -157,4 +235,6 @@ onMounted(() => { load(); skillList().then(d => skills.value = d) })
 .toolbar { margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
 .pager { margin-top: 12px; justify-content: flex-end; }
 .opt-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.import-errors { max-height: 140px; overflow-y: auto; background: #FDF6EC; border: 1px solid #F5E3C0; border-radius: 6px; padding: 8px 12px; }
+.import-err { color: #B45309; font-size: 12px; line-height: 1.8; }
 </style>

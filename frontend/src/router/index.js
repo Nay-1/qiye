@@ -13,6 +13,7 @@ const routes = [
       { path: 'system', name: 'System', component: () => import('@/views/SystemManage.vue'), meta: { title: '系统管理', roles: ['ADMIN'] } },
       { path: 'jobs', name: 'Jobs', component: () => import('@/views/JobSkillManage.vue'), meta: { title: '岗位技能', roles: ['ADMIN', 'TRAINER'] } },
       { path: 'courses', name: 'Courses', component: () => import('@/views/CourseManage.vue'), meta: { title: '课程管理', roles: ['ADMIN', 'TRAINER'] } },
+      { path: 'my-courses', name: 'MyCourses', component: () => import('@/views/MyCourses.vue'), meta: { title: '我的课程' } },
       { path: 'learn/:id', name: 'Learn', component: () => import('@/views/CourseLearn.vue'), meta: { title: '课程学习' } },
       { path: 'questions', name: 'Questions', component: () => import('@/views/QuestionManage.vue'), meta: { title: '题库管理', roles: ['ADMIN', 'TRAINER'] } },
       { path: 'exams', name: 'Exams', component: () => import('@/views/ExamManage.vue'), meta: { title: '考试管理', roles: ['ADMIN', 'TRAINER'] } },

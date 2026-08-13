@@ -12,6 +12,7 @@ import com.qiye.mapper.QuestionMapper;
 import com.qiye.mapper.QuestionSkillMapper;
 import com.qiye.mapper.SkillMapper;
 import com.qiye.security.SecurityUtils;
+import com.qiye.service.QuestionImportService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -21,6 +22,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ public class QuestionController {
     private final QuestionMapper questionMapper;
     private final QuestionSkillMapper questionSkillMapper;
     private final SkillMapper skillMapper;
+    private final QuestionImportService questionImportService;
 
     @GetMapping("/page")
     @PreAuthorize("hasAnyRole('ADMIN','TRAINER')")
@@ -85,11 +88,25 @@ public class QuestionController {
             throw new BizException("请至少绑定一个考核技能（否则无法进入技能画像计算）");
         }
         req.setId(null);
-        req.setSource("MANUAL");
+        if (req.getSource() == null) {
+            req.setSource("MANUAL");
+        }
         req.setCreatedBy(SecurityUtils.getUserId());
         questionMapper.insert(req);
         bindSkills(req.getId(), req.getSkillIds());
         return Result.ok();
+    }
+
+    /** 批量导入：Excel / Word / PDF / TXT / Markdown，统一绑定一个技能 */
+    @PostMapping("/import")
+    @PreAuthorize("hasAnyRole('ADMIN','TRAINER')")
+    public Result<QuestionImportService.ImportResult> importQuestions(@RequestParam("file") MultipartFile file,
+                                                                      @RequestParam Long skillId,
+                                                                      @RequestParam(defaultValue = "AUTO") String mode) {
+        if (skillMapper.selectById(skillId) == null) {
+            throw new BizException("所选考核技能不存在");
+        }
+        return Result.ok(questionImportService.importFile(file, skillId, mode, SecurityUtils.getUserId()));
     }
 
     @PutMapping

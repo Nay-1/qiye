@@ -103,14 +103,15 @@ public class AiAssistantService {
 
         try {
             String content = llmClient.chat(system, userPrompt, 0.7);
-            return parseQuestions(content);
+            return parseQuestionsJson(content);
         } catch (Exception e) {
             log.warn("AI 出题不可用：{}", e.getMessage());
             throw new BizException("AI 服务暂不可用（未配置大模型 API Key），无法生成试题");
         }
     }
 
-    private List<Question> parseQuestions(String content) {
+    /** 解析 LLM 返回的 JSON 数组文本为题目列表（AI 出题 / 批量导入 AI 识别复用） */
+    public List<Question> parseQuestionsJson(String content) {
         try {
             String json = content.replaceAll("```json", "").replaceAll("```", "").trim();
             int start = json.indexOf('[');

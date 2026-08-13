@@ -52,11 +52,10 @@
             <version>${mybatis-plus.version}</version>
         </dependency>
 
-        <!-- PostgreSQL 驱动 -->
+        <!-- PostgreSQL 驱动（compile：PgJsonbTypeHandler 编译期引用 PGobject） -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- JWT -->

@@ -2,9 +2,9 @@
   <el-card shadow="never">
     <template v-if="store.canManage">
       <div class="upload-box">
-        <el-upload drag :auto-upload="false" :limit="1" accept=".pdf,.docx,.txt" :on-change="onFileChange" :on-remove="() => file = null">
+        <el-upload drag :auto-upload="false" :limit="1" accept=".pdf,.docx,.txt,.md" :on-change="onFileChange" :on-remove="() => file = null">
           <el-icon :size="40" color="#909399"><UploadFilled /></el-icon>
-          <div>拖拽或点击上传知识文档（PDF / Word / TXT，≤20MB）</div>
+          <div>拖拽或点击上传知识文档（PDF / Word / TXT / Markdown，≤20MB）</div>
         </el-upload>
         <div class="upload-opts">
           <span>可见部门：</span>
