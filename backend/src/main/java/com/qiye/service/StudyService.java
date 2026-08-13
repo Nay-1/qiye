@@ -38,11 +38,13 @@ public class StudyService {
             rec.setStartedAt(LocalDateTime.now());
             rec.setUpdatedAt(LocalDateTime.now());
             studyRecordMapper.insert(rec);
+            trainingTaskService.markCourseInProgress(userId, courseId);
         } else if ("NOT_STARTED".equals(rec.getStatus())) {
             rec.setStatus("IN_PROGRESS");
             rec.setStartedAt(LocalDateTime.now());
             rec.setUpdatedAt(LocalDateTime.now());
             studyRecordMapper.updateById(rec);
+            trainingTaskService.markCourseInProgress(userId, courseId);
         }
         return rec;
     }

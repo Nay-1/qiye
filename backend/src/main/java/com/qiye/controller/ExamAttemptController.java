@@ -1,6 +1,7 @@
 package com.qiye.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.qiye.common.BizException;
 import com.qiye.common.Result;
 import com.qiye.entity.Exam;
 import com.qiye.entity.ExamAttempt;
@@ -42,6 +43,14 @@ public class ExamAttemptController {
 
     @GetMapping("/{attemptId}")
     public Result<Map<String, Object>> detail(@PathVariable Long attemptId) {
+        // 员工仅可查看自己的答卷；管理员/培训负责人可查看任意
+        String role = SecurityUtils.getRoleCode();
+        if (!"ADMIN".equals(role) && !"TRAINER".equals(role)) {
+            ExamAttempt a = attemptService.find(attemptId);
+            if (a == null || !a.getUserId().equals(SecurityUtils.getUserId())) {
+                throw new BizException("考试记录不存在");
+            }
+        }
         return Result.ok(attemptService.detail(attemptId));
     }
 

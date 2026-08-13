@@ -49,6 +49,22 @@ public class TrainingTaskService {
     }
 
     /**
+     * 员工开始学习某课程时，把该课程的「待学」任务标记为「学习中」
+     */
+    public void markCourseInProgress(Long userId, Long courseId) {
+        List<TrainingTask> tasks = taskMapper.selectList(
+                new LambdaQueryWrapper<TrainingTask>()
+                        .eq(TrainingTask::getUserId, userId)
+                        .eq(TrainingTask::getCourseId, courseId));
+        for (TrainingTask t : tasks) {
+            if ("PENDING".equals(t.getStatus())) {
+                t.setStatus("IN_PROGRESS");
+                taskMapper.updateById(t);
+            }
+        }
+    }
+
+    /**
      * 课程章节全部学完后，把该员工该课程的 SYTEM 任务标记为完成
      */
     public void markCourseCompleted(Long userId, Long courseId) {

@@ -157,6 +157,11 @@ public class ExamAttemptService {
                 .orderByDesc(ExamAttempt::getId));
     }
 
+    /** 只读取一条考试记录（用于归属校验，不暴露题目答案） */
+    public ExamAttempt find(Long attemptId) {
+        return attemptMapper.selectById(attemptId);
+    }
+
     /** 某考试的全部已提交记录（管理端查看成绩） */
     public List<ExamAttempt> listByExam(Long examId) {
         return attemptMapper.selectList(new LambdaQueryWrapper<ExamAttempt>()

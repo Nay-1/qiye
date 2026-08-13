@@ -52,13 +52,24 @@ public class ExamController {
         if (StringUtils.hasText(keyword)) {
             qw.like(Exam::getTitle, keyword);
         }
-        if (StringUtils.hasText(status)) {
-            qw.eq(Exam::getStatus, status);
+        boolean manager = isManager();
+        if (manager) {
+            if (StringUtils.hasText(status)) {
+                qw.eq(Exam::getStatus, status);
+            }
+        } else {
+            // 员工仅能查看已发布考试，草稿/已关闭不可见
+            qw.eq(Exam::getStatus, "PUBLISHED");
         }
         qw.orderByAsc(Exam::getId);
         Page<Exam> p = examMapper.selectPage(new Page<>(page, size), qw);
         fillExt(p.getRecords());
         return Result.ok(new PageResult<>(p.getTotal(), p.getRecords()));
+    }
+
+    private boolean isManager() {
+        String role = SecurityUtils.getRoleCode();
+        return "ADMIN".equals(role) || "TRAINER".equals(role);
     }
 
     /** 管理端详情：含试卷题目（带答案） */

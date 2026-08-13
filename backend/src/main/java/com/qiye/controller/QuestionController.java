@@ -40,6 +40,7 @@ public class QuestionController {
     private final SkillMapper skillMapper;
 
     @GetMapping("/page")
+    @PreAuthorize("hasAnyRole('ADMIN','TRAINER')")
     public Result<PageResult<Question>> page(@RequestParam(defaultValue = "1") int page,
                                              @RequestParam(defaultValue = "10") int size,
                                              @RequestParam(required = false) String keyword,
@@ -66,6 +67,7 @@ public class QuestionController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','TRAINER')")
     public Result<Question> detail(@PathVariable Long id) {
         Question q = questionMapper.selectById(id);
         if (q == null) {
